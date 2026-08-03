@@ -145,23 +145,27 @@ public final class FormJavaFile {
         if (button.getType() != WidgetType.BUTTON) {
             return;
         }
-        VirtualFile javaFile = ensure(model);
-        if (javaFile == null) {
-            return;
-        }
-        Document document = FileDocumentManager.getInstance().getDocument(javaFile);
-        if (document == null) {
-            return;
-        }
+        // Todo esto va en el hilo de UI porque nace de un doble clic y el alumno espera
+        // ver el codigo al instante. Leer el PSI de la clase cuenta como operacion lenta;
+        // se marca como excepcion conocida en vez de fingir que no lo es.
+        try (AccessToken ignored = SlowOperations.knownIssue("SBE: doble clic sobre un boton, en el EDT")) {
+            VirtualFile javaFile = ensure(model);
+            if (javaFile == null) {
+                return;
+            }
+            Document document = FileDocumentManager.getInstance().getDocument(javaFile);
+            if (document == null) {
+                return;
+            }
 
-        PsiDocumentManager psiDocs = PsiDocumentManager.getInstance(project);
-        psiDocs.commitDocument(document);
+            PsiDocumentManager.getInstance(project).commitDocument(document);
 
-        String marker = button.getName() + ".addActionListener";
-        if (!document.getText().contains(marker)) {
-            insertListener(model, javaFile, document, button.getName());
+            String marker = button.getName() + ".addActionListener";
+            if (!document.getText().contains(marker)) {
+                insertListener(model, javaFile, document, button.getName());
+            }
+            navigateInsideListener(javaFile, document, marker);
         }
-        navigateInsideListener(javaFile, document, marker);
     }
 
     private void insertListener(FormModel model, VirtualFile javaFile, Document document, String buttonName) {

@@ -67,6 +67,7 @@ public final class NewFormDialog extends DialogWrapper {
     private final JBLabel themeDescription = new JBLabel();
     private final JPanel previewContent = new JPanel(null);
     private final JPanel previewFrame = new PreviewFrame();
+    private final JPanel panelVistaPrevia = new JPanel(new BorderLayout(0, JBUI.scale(4)));
 
     public NewFormDialog(@Nullable Project project, String nombreSugerido, Predicate<String> nombreOcupado) {
         super(project, false);
@@ -122,8 +123,11 @@ public final class NewFormDialog extends DialogWrapper {
         modoDescription.setText(wrap(categoria.getDescripcion()));
         templates.setListData(categoria.getTemplates());
         templates.setSelectedIndex(0);
+        // En Aprendizaje lo que se explica es el codigo, no el aspecto: sin maqueta.
+        panelVistaPrevia.setVisible(categoria == FormCategory.DESARROLLO);
         updateDescription();
         updatePreview();
+        pack();
     }
 
     public FormCategory getCategoria() {
@@ -162,16 +166,16 @@ public final class NewFormDialog extends DialogWrapper {
                 .addComponentToRightColumn(themeDescription)
                 .getPanel();
 
-        JPanel right = new JPanel(new BorderLayout(0, JBUI.scale(4)));
         JBLabel caption = new JBLabel("Vista previa");
         caption.setForeground(UIUtil.getContextHelpForeground());
-        right.add(caption, BorderLayout.NORTH);
-        right.add(previewFrame, BorderLayout.CENTER);
+        panelVistaPrevia.add(caption, BorderLayout.NORTH);
+        panelVistaPrevia.add(previewFrame, BorderLayout.CENTER);
+        panelVistaPrevia.setVisible(getCategoria() == FormCategory.DESARROLLO);
 
         JPanel root = new JPanel(new BorderLayout(JBUI.scale(16), 0));
         root.add(marca(), BorderLayout.NORTH);
         root.add(left, BorderLayout.CENTER);
-        root.add(right, BorderLayout.EAST);
+        root.add(panelVistaPrevia, BorderLayout.EAST);
         return root;
     }
 

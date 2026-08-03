@@ -81,9 +81,44 @@ class GeneratedCodeCompilesTest {
     void todasLasPlantillasGeneranCodigoQueCompila(@TempDir Path dir) throws Exception {
         for (com.vanlutec.swingbuilder.model.FormTemplate template
                 : com.vanlutec.swingbuilder.model.FormTemplate.values()) {
+            if (template.isSoloCodigo()) {
+                continue;  // se comprueba en la prueba de las lecciones
+            }
             compila(JavaFormGenerator.newFile(template.createModel("Calculadora"), "com.ejemplo"),
                     Files.createDirectories(dir.resolve(template.name())));
         }
+    }
+
+    /**
+     * Las lecciones acaban delante de 60 alumnos: no basta con que compilen, tienen que
+     * ejecutarse enteras sin reventar.
+     */
+    @Test
+    void lasLeccionesDeAprendizajeCompilanYSeEjecutan(@TempDir Path dir) throws Exception {
+        for (com.vanlutec.swingbuilder.model.FormTemplate template
+                : com.vanlutec.swingbuilder.model.FormCategory.APRENDIZAJE.getTemplates()) {
+            Path conPaquete = Files.createDirectories(dir.resolve(template.name()));
+            compila(template.javaSource("Calculadora", "com.ejemplo"), conPaquete);
+
+            // Sin paquete, para poder ejecutarla por su nombre a secas.
+            Path suelta = Files.createDirectories(dir.resolve(template.name() + "_sin_paquete"));
+            compila(template.javaSource("Calculadora", ""), suelta);
+            ejecuta(suelta.resolve("out"), template.toString());
+        }
+    }
+
+    /** Lanza la clase compilada y exige que termine bien y escriba algo. */
+    private static void ejecuta(Path clases, String leccion) throws Exception {
+        Path java = Path.of(System.getProperty("java.home"), "bin",
+                System.getProperty("os.name").toLowerCase().startsWith("win") ? "java.exe" : "java");
+        Process process = new ProcessBuilder(java.toString(), "-cp", clases.toString(), "Calculadora")
+                .redirectErrorStream(true)
+                .start();
+        String salida = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        int status = process.waitFor();
+
+        assertEquals(0, status, () -> "la leccion \"" + leccion + "\" revienta al ejecutarse:\n" + salida);
+        assertTrue(salida.length() > 100, () -> "la leccion \"" + leccion + "\" apenas imprime nada:\n" + salida);
     }
 
     @Test

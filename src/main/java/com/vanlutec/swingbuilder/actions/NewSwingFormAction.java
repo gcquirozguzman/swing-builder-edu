@@ -13,13 +13,18 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.application.AccessToken;
+import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiPackage;
+import com.intellij.util.SlowOperations;
 import com.vanlutec.swingbuilder.SbeIcons;
 import com.vanlutec.swingbuilder.SwingFormFileType;
 import com.vanlutec.swingbuilder.model.FormModel;
 import com.vanlutec.swingbuilder.model.FormModelIO;
 import com.vanlutec.swingbuilder.model.FormNames;
+import com.vanlutec.swingbuilder.model.FormTemplate;
 import com.vanlutec.swingbuilder.ui.NewFormDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,20 +72,39 @@ public final class NewSwingFormAction extends AnAction implements DumbAware {
             return;
         }
 
-        FormModel model = dialog.getTemplate().createModel(name);
-        model.setTheme(dialog.getTheme());
-        String xml = FormModelIO.toXml(model);
+        FormTemplate template = dialog.getTemplate();
+        if (template.isSoloCodigo()) {
+            // Modo Aprendizaje: no hay formulario ni .sbe, solo la clase con la leccion.
+            crearFichero(project, dir, name + ".java",
+                    template.javaSource(name, packageName(project, directory)));
+            return;
+        }
 
+        FormModel model = template.createModel(name);
+        model.setTheme(dialog.getTheme());
+        crearFichero(project, dir, name + "." + SwingFormFileType.EXTENSION, FormModelIO.toXml(model));
+    }
+
+    /** Crea el fichero con ese contenido y lo abre. */
+    private void crearFichero(Project project, VirtualFile dir, String nombre, String contenido) {
         WriteCommandAction.runWriteCommandAction(project, "Nuevo formulario Swing", "SwingBuilderEdu", () -> {
             try {
-                VirtualFile sbe = dir.createChildData(this, name + "." + SwingFormFileType.EXTENSION);
-                VfsUtil.saveText(sbe, xml);
-                FileEditorManager.getInstance(project).openFile(sbe, true);
+                VirtualFile creado = dir.createChildData(this, nombre);
+                VfsUtil.saveText(creado, contenido);
+                FileEditorManager.getInstance(project).openFile(creado, true);
             } catch (IOException ex) {
-                Messages.showErrorDialog(project, "No se pudo crear el formulario: " + ex.getMessage(),
+                Messages.showErrorDialog(project, "No se pudo crear " + nombre + ": " + ex.getMessage(),
                         "Nuevo formulario Swing");
             }
         });
+    }
+
+    /** El paquete de la carpeta destino, para la sentencia {@code package} de la leccion. */
+    private static String packageName(Project project, PsiDirectory directory) {
+        try (AccessToken ignored = SlowOperations.knownIssue("SBE: paquete al crear, en el EDT")) {
+            PsiPackage psiPackage = JavaDirectoryService.getInstance().getPackage(directory);
+            return psiPackage == null ? "" : psiPackage.getQualifiedName();
+        }
     }
 
     private static @Nullable PsiDirectory targetDirectory(@NotNull AnActionEvent e) {

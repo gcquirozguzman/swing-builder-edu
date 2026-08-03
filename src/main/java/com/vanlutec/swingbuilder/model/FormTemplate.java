@@ -1,5 +1,7 @@
 package com.vanlutec.swingbuilder.model;
 
+import com.vanlutec.swingbuilder.codegen.LessonGenerator;
+
 /**
  * Los puntos de partida que ofrece {@code New | Swing Form (Designer)}.
  * <p>
@@ -74,79 +76,61 @@ public enum FormTemplate {
 
     // ---------------------------------------------------------------- aprendizaje
     // Una plantilla por tema del curso. Anadir mas es solo otra constante aqui.
+    // Este modo va sin vista previa: en clase lo que se explica es el codigo.
 
     VARIABLES(FormCategory.APRENDIZAJE, "Variables y tipos",
-            "Pide un texto y un numero para practicar String, int y la conversion con "
-                    + "Integer.parseInt.") {
+            "Una clase con main y comentarios: enteros, decimales, char, boolean, String, "
+                    + "conversiones y constantes. Sin formulario.") {
         @Override
         void fill(FormModel model) {
-            model.addWidget(label("lblNombre", "Nombre (String):", 20, 22, 130, 16));
-            model.addWidget(textField("txtNombre", 160, 19, 200, 26));
-            model.addWidget(label("lblEdad", "Edad (int):", 20, 58, 130, 16));
-            model.addWidget(textField("txtEdad", 160, 55, 200, 26));
-            model.addWidget(button("btnMostrar", "Mostrar", 420, 19, 120, 26));
-            model.addWidget(button("btnLimpiar", "Limpiar", 420, 55, 120, 26));
-            model.addWidget(textArea("txtSalida", 20, 96, 520, 236));
+            // Sin componentes: esta plantilla no crea formulario.
+        }
+
+        @Override
+        public String javaSource(String className, String packageName) {
+            return LessonGenerator.variablesYTipos(className, packageName);
         }
     },
 
-    CONDICIONALES(FormCategory.APRENDIZAJE, "Condicionales (if)",
-            "Una nota y un boton que decide si aprueba. Para practicar if / else if / else.") {
+    OPERACIONES(FormCategory.APRENDIZAJE, "Operaciones con variables",
+            "Continua la anterior: aritmetica, la division entera, prioridad de "
+                    + "parentesis, comparaciones y operadores logicos. Sin formulario.") {
         @Override
         void fill(FormModel model) {
-            model.addWidget(label("lblNota", "Nota (0-20):", 20, 22, 130, 16));
-            model.addWidget(textField("txtNota", 160, 19, 200, 26));
-            model.addWidget(button("btnEvaluar", "Evaluar", 420, 19, 120, 26));
-            model.addWidget(button("btnLimpiar", "Limpiar", 420, 55, 120, 26));
-            model.addWidget(label("lblResultado", "Resultado:", 20, 60, 130, 16));
-            model.addWidget(textArea("txtSalida", 20, 96, 520, 236));
+            // Sin componentes: esta plantilla no crea formulario.
+        }
+
+        @Override
+        public String javaSource(String className, String packageName) {
+            return LessonGenerator.operaciones(className, packageName);
         }
     },
 
-    BUCLES(FormCategory.APRENDIZAJE, "Bucles (for / while)",
-            "Un numero y un boton que escribe su tabla de multiplicar linea a linea.") {
+    CONDICIONALES(FormCategory.APRENDIZAJE, "Condicionales (if, else if, switch)",
+            "Usar los booleanos de la clase anterior para decidir: if, else if, else, "
+                    + "condiciones combinadas y switch. Sin formulario.") {
         @Override
         void fill(FormModel model) {
-            model.addWidget(label("lblNumero", "Numero:", 20, 22, 130, 16));
-            model.addWidget(textField("txtNumero", 160, 19, 200, 26));
-            model.addWidget(label("lblRepeticiones", "Repeticiones:", 20, 58, 130, 16));
-            model.addWidget(textField("txtRepeticiones", 160, 55, 200, 26));
-            model.addWidget(button("btnGenerar", "Generar", 420, 19, 120, 26));
-            model.addWidget(button("btnLimpiar", "Limpiar", 420, 55, 120, 26));
-            model.addWidget(textArea("txtSalida", 20, 96, 520, 236));
+            // Sin componentes: esta plantilla no crea formulario.
+        }
+
+        @Override
+        public String javaSource(String className, String packageName) {
+            return LessonGenerator.condicionales(className, packageName);
         }
     },
 
-    ARREGLOS(FormCategory.APRENDIZAJE, "Arreglos y listas",
-            "Anadir elementos y listarlos. Para practicar arreglos, ArrayList y recorridos.") {
+    METODOS(FormCategory.APRENDIZAJE, "Metodos",
+            "Las cuatro combinaciones, una por una: con y sin parametros, con y sin "
+                    + "retorno. Sin formulario.") {
         @Override
         void fill(FormModel model) {
-            model.addWidget(label("lblElemento", "Elemento:", 20, 22, 130, 16));
-            model.addWidget(textField("txtElemento", 160, 19, 200, 26));
-            model.addWidget(label("lblOrden", "Orden:", 20, 58, 130, 16));
-            model.addWidget(comboBox("cmbOrden", "Sin ordenar, Ascendente, Descendente",
-                    160, 55, 200, 26));
-            model.addWidget(button("btnAgregar", "Agregar", 420, 19, 120, 26));
-            model.addWidget(button("btnListar", "Listar", 420, 55, 120, 26));
-            model.addWidget(textArea("txtSalida", 20, 96, 520, 236));
+            // Sin componentes: esta plantilla no crea formulario.
         }
-    },
 
-    OBJETOS(FormCategory.APRENDIZAJE, "Clases y objetos",
-            "Los datos de un objeto y un boton que lo crea y lo muestra. Para practicar "
-                    + "clases, constructores y toString.") {
         @Override
-        void fill(FormModel model) {
-            model.addWidget(label("lblCodigo", "Codigo:", 20, 22, 130, 16));
-            model.addWidget(textField("txtCodigo", 160, 19, 200, 26));
-            model.addWidget(label("lblDescripcion", "Descripcion:", 20, 58, 130, 16));
-            model.addWidget(textField("txtDescripcion", 160, 55, 200, 26));
-            model.addWidget(label("lblCategoria", "Categoria:", 20, 94, 130, 16));
-            model.addWidget(comboBox("cmbCategoria", "Basico, Intermedio, Avanzado",
-                    160, 91, 200, 26));
-            model.addWidget(button("btnCrear", "Crear", 420, 19, 120, 26));
-            model.addWidget(button("btnLimpiar", "Limpiar", 420, 55, 120, 26));
-            model.addWidget(textArea("txtSalida", 20, 132, 520, 200));
+        public String javaSource(String className, String packageName) {
+            return LessonGenerator.metodos(className, packageName);
         }
     };
 
@@ -182,6 +166,23 @@ public enum FormTemplate {
 
     public int getAlto() {
         return ALTO;
+    }
+
+    /**
+     * {@code true} si la plantilla no crea formulario, solo una clase Java con la
+     * leccion. En ese caso no hay {@code .sbe} ni disenador: se abre el codigo.
+     */
+    public boolean isSoloCodigo() {
+        return categoria == FormCategory.APRENDIZAJE;
+    }
+
+    /**
+     * El fuente de la leccion. Solo tiene sentido si {@link #isSoloCodigo()}.
+     *
+     * @param packageName paquete de destino, o cadena vacia si no hay
+     */
+    public String javaSource(String className, String packageName) {
+        throw new IllegalStateException(name() + " genera un formulario, no codigo suelto");
     }
 
     /** Anade al modelo los componentes de la plantilla. */
