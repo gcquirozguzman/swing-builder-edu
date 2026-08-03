@@ -53,13 +53,20 @@ jobs:
       - name: Compilar, probar y empaquetar
         run: ./gradlew test buildPlugin updatePluginsXml verifyPluginStructure
 
-      - name: Crear la Release con el ZIP
+      # Idempotente a proposito: si el despliegue de Pages falla, hay que poder
+      # relanzar el workflow, y entonces la Release ya existe.
+      - name: Crear o actualizar la Release con el ZIP
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "$GITHUB_REF_NAME" build/distributions/*.zip \
-            --title "$GITHUB_REF_NAME" \
-            --generate-notes
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "La Release $GITHUB_REF_NAME ya existe: solo subo el ZIP."
+            gh release upload "$GITHUB_REF_NAME" build/distributions/*.zip --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" build/distributions/*.zip \
+              --title "$GITHUB_REF_NAME" \
+              --generate-notes
+          fi
 
       # El sitio es minimo: el updatePlugins.xml y una pagina que explica como anadirlo.
       - name: Preparar el sitio
