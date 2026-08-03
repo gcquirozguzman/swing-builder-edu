@@ -1,0 +1,39 @@
+<idea-plugin>
+    <id>com.vanlutec.swing-builder-edu</id>
+    <name>Swing Builder Edu</name>
+    <vendor url="https://github.com/">Vanlutec</vendor>
+
+    <description><![CDATA[
+    <p><b>Disenador visual de GUIs Swing</b> con la apariencia y el flujo de trabajo de
+    WindowBuilder, pensado para clases de programacion en Java.</p>
+    <ul>
+      <li>Paleta a la izquierda con <code>JLabel</code>, <code>JTextField</code>,
+          <code>JButton</code> y <code>JTextArea</code>.</li>
+      <li>Canvas WYSIWYG en el centro: arrastrar y soltar, seleccion con tiradores de
+          redimensionado y guias de alineacion.</li>
+      <li>Tabla de propiedades a la derecha (<code>name</code>, <code>text</code>,
+          <code>font</code>, <code>bounds</code>), editable en vivo.</li>
+      <li><b>Doble clic sobre un JButton</b>: genera el <code>ActionListener</code> en la
+          clase Java y salta al codigo.</li>
+    </ul>
+    <p>Crea un formulario con <i>New | Swing Form (Designer)</i>.</p>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="Swing Form"
+                  implementationClass="com.vanlutec.swingbuilder.SwingFormFileType"
+                  fieldName="INSTANCE"
+                  extensions="sbe"/>
+        <fileEditorProvider implementation="com.vanlutec.swingbuilder.editor.SwingDesignerEditorProvider"/>
+    </extensions>
+
+    <actions>
+        <action id="SwingBuilderEdu.NewForm"
+                class="com.vanlutec.swingbuilder.actions.NewSwingFormAction">
+            <add-to-group group-id="NewGroup" anchor="first"/>
+        </action>
+    </actions>
+</idea-plugin>

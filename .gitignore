@@ -1,0 +1,57 @@
+# --- Gradle ---
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
+.gradletasknamecache
+
+# --- IntelliJ Platform Plugin ---
+# Sandbox generado por runIde / prepareSandbox
+.intellijPlatform/
+idea-sandbox/
+*.iml
+*.ipr
+*.iws
+
+# --- IntelliJ IDEA (config del IDE) ---
+.idea/*
+!.idea/codeStyles/
+!.idea/inspectionProfiles/
+!.idea/runConfigurations/
+
+# --- Java / Kotlin ---
+*.class
+*.jar
+!gradle/wrapper/*.jar
+*.war
+*.ear
+*.log
+hs_err_pid*
+replay_pid*
+.kotlin/
+
+# --- Sistema operativo ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Editores varios ---
+.vscode/
+*.swp
+*~
+
+# --- Asistentes de IA ---
+.claude/
+CLAUDE.md
+.claudeignore
+.cursor/
+.cursorrules
+.aider*
+.github/copilot-instructions.md
+.continue/
+.windsurfrules
+
+# --- Local / secretos ---
+local.properties
+*.local
