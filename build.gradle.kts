@@ -1,3 +1,4 @@
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
@@ -17,10 +18,18 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        create(
-            providers.gradleProperty("platformType"),
-            providers.gradleProperty("platformVersion"),
-        )
+        // useInstaller = false baja el IDE como artefacto de Maven en vez de como
+        // instalador. El instalador se lee con el "product-info layout", que en Linux
+        // revienta al resolver los plugins agrupados (ClosedFileSystemException leyendo
+        // java-impl.jar) y deja com.intellij.java sin encontrar.
+        create {
+            type = providers.gradleProperty("platformType").map { IntelliJPlatformType.fromCode(it) }
+            version = providers.gradleProperty("platformVersion")
+            useInstaller = false
+        }
+        // Sin instalador no viene el JBR incluido: hay que pedirlo aparte para runIde.
+        jetbrainsRuntime()
+
         // El generador de codigo usa PSI de Java (bundled en IDEA Community).
         bundledPlugin("com.intellij.java")
         // Para las pruebas que necesitan un proyecto e indices de verdad
