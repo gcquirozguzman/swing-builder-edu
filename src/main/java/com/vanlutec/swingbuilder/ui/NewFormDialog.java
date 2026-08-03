@@ -6,6 +6,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
@@ -178,8 +179,15 @@ public final class NewFormDialog extends DialogWrapper {
     private static JComponent marca() {
         JBLabel logo = new JBLabel(SbeIcons.cibertec(22));
         logo.setBorder(JBUI.Borders.emptyBottom(10));
+
+        HyperlinkLabel autor = new HyperlinkLabel();
+        autor.setTextWithHyperlink("Swing Builder Edu, por <hyperlink>Gian Carlo Quiroz</hyperlink>");
+        autor.setHyperlinkTarget("https://github.com/gcquirozguzman");
+        autor.setBorder(JBUI.Borders.emptyBottom(10));
+
         JPanel fila = new JPanel(new BorderLayout());
         fila.add(logo, BorderLayout.WEST);
+        fila.add(autor, BorderLayout.EAST);
         return fila;
     }
 

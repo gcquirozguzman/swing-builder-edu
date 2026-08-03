@@ -1,5 +1,6 @@
 package com.vanlutec.swingbuilder.codegen;
 
+import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -25,6 +26,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.PsiStatement;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.util.SlowOperations;
 import com.vanlutec.swingbuilder.model.FormModel;
 import com.vanlutec.swingbuilder.model.WidgetModel;
 import com.vanlutec.swingbuilder.model.WidgetType;
@@ -47,6 +49,7 @@ public final class FormJavaFile {
 
     private final Project project;
     private final VirtualFile sbeFile;
+    private String cachedPackageName;
 
     public FormJavaFile(@NotNull Project project, @NotNull VirtualFile sbeFile) {
         this.project = project;
@@ -233,12 +236,29 @@ public final class FormJavaFile {
 
     // ------------------------------------------------------------------ paquete
 
+    /**
+     * El paquete de la carpeta donde vive el {@code .sbe}.
+     * <p>
+     * Se calcula una sola vez: esto acaba llamandose desde el hilo de UI (al soltar un
+     * componente en el canvas) y {@code getPackage} consulta indices, que ahi es una
+     * operacion lenta. Como el fichero no se mueve de carpeta mientras el editor esta
+     * abierto, con calcularlo la primera vez sobra.
+     */
     private String packageName(VirtualFile directory) {
+        if (cachedPackageName == null) {
+            cachedPackageName = computePackageName(directory);
+        }
+        return cachedPackageName;
+    }
+
+    private String computePackageName(VirtualFile directory) {
         PsiDirectory psiDirectory = PsiManager.getInstance(project).findDirectory(directory);
         if (psiDirectory == null) {
             return "";
         }
-        PsiPackage psiPackage = JavaDirectoryService.getInstance().getPackage(psiDirectory);
-        return psiPackage == null ? "" : psiPackage.getQualifiedName();
+        try (AccessToken ignored = SlowOperations.knownIssue("SBE: paquete calculado en el EDT, una vez por editor")) {
+            PsiPackage psiPackage = JavaDirectoryService.getInstance().getPackage(psiDirectory);
+            return psiPackage == null ? "" : psiPackage.getQualifiedName();
+        }
     }
 }

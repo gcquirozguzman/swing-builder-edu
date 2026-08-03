@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.vanlutec.swing-builder-edu</id>
     <name>Swing Builder Edu</name>
-    <vendor url="https://github.com/">Vanlutec</vendor>
+    <vendor url="https://github.com/gcquirozguzman">Gian Carlo Quiroz</vendor>
 
     <description><![CDATA[
     <p><b>Disenador visual de GUIs Swing</b> con la apariencia y el flujo de trabajo de
@@ -17,6 +17,8 @@
           clase Java y salta al codigo.</li>
     </ul>
     <p>Crea un formulario con <i>New | Swing Form (Designer)</i>.</p>
+    <p>Creado por <b>Gian Carlo Quiroz</b> para las clases de Java de Cibertec &mdash;
+       <a href="https://github.com/gcquirozguzman">github.com/gcquirozguzman</a></p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>

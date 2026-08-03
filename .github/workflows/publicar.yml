@@ -1,0 +1,118 @@
+name: Publicar plugin
+
+# Se dispara al crear un tag vX.Y.Z. Hace tres cosas:
+#   1. compila y pasa las pruebas
+#   2. crea la Release de GitHub con el ZIP del plugin
+#   3. publica en GitHub Pages el updatePlugins.xml que consultan los alumnos
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write   # crear la Release y subir el ZIP
+  pages: write      # publicar en GitHub Pages
+  id-token: write   # requerido por deploy-pages
+
+# Que dos publicaciones seguidas no se pisen en Pages.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.desplegar.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Preparar Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # La version vive en gradle.properties. Si el tag dice otra cosa, el
+      # updatePlugins.xml apuntaria a un ZIP que no existe: mejor parar aqui.
+      - name: Comprobar que el tag coincide con pluginVersion
+        run: |
+          VERSION=$(grep '^pluginVersion=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "gradle.properties: $VERSION / tag: $TAG"
+          if [ "$VERSION" != "$TAG" ]; then
+            echo "::error::El tag ($TAG) no coincide con pluginVersion ($VERSION). Sube la version en gradle.properties y vuelve a etiquetar."
+            exit 1
+          fi
+
+      - name: Compilar, probar y empaquetar
+        run: ./gradlew test buildPlugin updatePluginsXml verifyPluginStructure
+
+      - name: Crear la Release con el ZIP
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" build/distributions/*.zip \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes
+
+      # El sitio es minimo: el updatePlugins.xml y una pagina que explica como anadirlo.
+      - name: Preparar el sitio
+        run: |
+          mkdir -p sitio
+          cp build/updatePlugins/updatePlugins.xml sitio/
+          REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
+          PAGES_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}"
+          cat > sitio/index.html <<HTML
+          <!doctype html>
+          <html lang="es">
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Swing Builder Edu</title>
+          <style>
+            body { font-family: system-ui, sans-serif; max-width: 46rem; margin: 3rem auto;
+                   padding: 0 1.5rem; line-height: 1.6; color: #1f2328; }
+            code { background: #f2f3f5; padding: .15em .4em; border-radius: 4px; }
+            .url { display: block; background: #f2f3f5; padding: .8rem 1rem; border-radius: 6px;
+                   word-break: break-all; margin: 1rem 0; }
+            @media (prefers-color-scheme: dark) {
+              body { background: #1e1f22; color: #dfe1e5; }
+              code, .url { background: #2b2d30; }
+              a { color: #6cade0; }
+            }
+          </style>
+          <h1>Swing Builder Edu</h1>
+          <p>Disenador visual de GUIs Swing para IntelliJ IDEA, para las clases de Java de Cibertec.</p>
+
+          <h2>Instalacion (una sola vez)</h2>
+          <ol>
+            <li>En IntelliJ IDEA: <b>Settings &rarr; Plugins &rarr; &#9881; &rarr; Manage Plugin Repositories&hellip;</b></li>
+            <li>Pulsa <b>+</b> y pega esta direccion:</li>
+          </ol>
+          <span class="url">${PAGES_URL}/updatePlugins.xml</span>
+          <ol start="3">
+            <li>Busca <b>Swing Builder Edu</b> en la pestana <b>Marketplace</b> e instalalo.</li>
+          </ol>
+          <p>A partir de ahi, las actualizaciones te llegan solas como las de cualquier otro plugin.</p>
+
+          <h2>Version actual</h2>
+          <p><a href="${REPO_URL}/releases/latest">Ver la ultima version publicada</a></p>
+
+          <hr>
+          <p>Creado por <a href="https://github.com/gcquirozguzman">Gian Carlo Quiroz</a>.</p>
+          </html>
+          HTML
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: sitio
+
+      - id: desplegar
+        uses: actions/deploy-pages@v4

@@ -66,3 +66,37 @@ tasks.withType<JavaCompile>().configureEach {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
+
+/**
+ * Genera el `updatePlugins.xml` del repositorio propio de plugins.
+ *
+ * Es el fichero que consulta IntelliJ para saber si hay version nueva: los alumnos
+ * anaden su URL una sola vez y a partir de ahi las actualizaciones les llegan solas.
+ */
+val updatePluginsXml by tasks.registering {
+    val version = providers.gradleProperty("pluginVersion").get()
+    val repositoryUrl = providers.gradleProperty("pluginRepositoryUrl").get().trimEnd('/')
+    val sinceBuild = providers.gradleProperty("pluginSinceBuild").get()
+    val destino = layout.buildDirectory.file("updatePlugins/updatePlugins.xml")
+
+    outputs.file(destino)
+    doLast {
+        val zip = "${rootProject.name}-$version.zip"
+        val descarga = "$repositoryUrl/releases/download/v$version/$zip"
+        val fichero = destino.get().asFile
+        fichero.parentFile.mkdirs()
+        fichero.writeText(
+            """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <plugins>
+              <plugin id="com.vanlutec.swing-builder-edu" url="$descarga" version="$version">
+                <name>Swing Builder Edu</name>
+                <description><![CDATA[Disenador visual de GUIs Swing con el flujo de WindowBuilder, para clases de Java.]]></description>
+                <idea-version since-build="$sinceBuild"/>
+              </plugin>
+            </plugins>
+            """.trimIndent() + "\n"
+        )
+        logger.lifecycle("updatePlugins.xml generado para la version $version -> $descarga")
+    }
+}
